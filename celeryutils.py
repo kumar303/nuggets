@@ -6,7 +6,12 @@ import logging
 import functools
 import sys
 
-import celery.decorators
+import celery
+if celery.VERSION[0:2] >= (2, 3):
+    from celery.task import task as celery_task
+else:
+    # Deprecated in 2.2, http://bit.ly/celery22major
+    from celery.decorators import task as celery_task
 import celery.task
 from django.db import connections, transaction
 
@@ -59,7 +64,7 @@ def task(*args, **kw):
                         raise
         # Force usage of our Task subclass.
         kw['base'] = Task
-        return celery.decorators.task(**kw)(wrapped)
+        return celery_task(**kw)(wrapped)
     if args:
         return decorate(*args)
     else:
